@@ -1,0 +1,21 @@
+KafkaConsumer:
+  config:
+    bootstrap.servers: kafka:9092
+    group.id: '0'
+  topics:
+    - alerts
+    - recommendations
+  batchSize: 1
+KafkaProducer:
+  config:
+    bootstrap.servers: kafka:9092
+  topic: actions
+AppDatabase:
+  connection:
+    postgres_host: db
+    postgres_port: 5432
+    postgres_user: postgres
+    postgres_password: password
+    postgres_db_name: postgres
+    postgres_sslmode: disable
+    postgres_sslrootcert:
