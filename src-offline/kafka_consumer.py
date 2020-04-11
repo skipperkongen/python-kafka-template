@@ -29,7 +29,7 @@ consumer = Consumer({
 consumer.subscribe([topic])
 
 while True:
-    msg = consumer.poll(timeout=10.0)
+    msg = consumer.poll(timeout=5.0)
     if msg is None:
         logger.info(f'Nothing received...')
         continue

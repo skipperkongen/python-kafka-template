@@ -8,7 +8,7 @@ from configurator import Config
 from confluent_kafka import Consumer, Producer, KafkaException, KafkaError
 from flask import Flask, Response, request, jsonify
 
-from pkt import ParseError, Api, EventConsumer, ActionExecutor
+from pkt import ParseError, Api, EventConsumer, TaskHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,14 +28,15 @@ config = Config.from_path('/app/config.yaml', optional=True)
 logger.info(f"Initializing API")
 
 api = Api()
-action_queue = SimpleQueue()
+task_queue = SimpleQueue()
 
-logger.info(f"Starting action executor thread")
+logger.info(f"Starting task handler thread")
 # Create Kafka producers
 producer = Producer(dict(config['KafkaProducer']['config'].items()))
-action_executor = ActionExecutor(queue=action_queue, producer=producer, api=api)
-action_executor_thread = threading.Thread(target=action_executor.run)
-action_executor_thread.start()
+topic = config['KafkaProducer']['topic']
+task_handler = TaskHandler(queue=task_queue, api=api, producer=producer, topic=topic)
+task_handler_thread = threading.Thread(target=task_handler.run)
+task_handler_thread.start()
 
 logger.info(f"Starting event consumer thread")
 consumer = Consumer(dict(config['KafkaConsumer']['config'].items()))
@@ -44,7 +45,7 @@ logger.info(f'Subscribing to topics:')
 for topic in consumer_topics:
     logger.info(f'- {topic}')
 consumer.subscribe(consumer_topics)
-event_consumer = EventConsumer(queue=action_queue, consumer=consumer, api=api)
+event_consumer = EventConsumer(queue=task_queue, api=api, consumer=consumer)
 event_consumer_thread = threading.Thread(target=event_consumer.run)
 event_consumer_thread.start()
 
@@ -55,6 +56,6 @@ app.config['SECRET_KEY'] = 'dudu-dodo-didi-dada'
 
 @app.route('/', methods=['GET'])
 def hello():
-    return Response(f'Hello World!', mimetype='text/plain')
+    return Response(f'I have received {api.counter} messages', mimetype='text/plain')
 
 logger.info('Ready to receive requests')

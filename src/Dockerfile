@@ -9,7 +9,7 @@ RUN apt-get install -y python3 python3-pip libpq-dev
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
-COPY pennyanalytics /pennyanalytics
+COPY pkt /pkt
 COPY main.py .
 
 # CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "main:app", "-k", "sync"]

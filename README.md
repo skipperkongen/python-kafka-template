@@ -26,21 +26,20 @@ Template for a simple stream processing service in Python
                                      └───────┘                                                        
 ```
 
-## How to run locally
+## Running the service locally
 
-Option 1:
+Start the service:
 ```
-# Start service
 make compose_up
-# Stop service
-make compose_down
 ```
 
-Option 2:
+Call Web API:
+
 ```
-# Start service
-docker-compose up --force-recreate --build --remove-orphans
-# Stop service
-docker-compose down
-docker volume rm python-kafka-template_db-data
+curl http://localhost
+```
+
+Stop the service:
+```
+make compose_down
 ```

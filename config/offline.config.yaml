@@ -3,13 +3,13 @@ KafkaConsumer:
     bootstrap.servers: kafka:9092
     group.id: '0'
   topics:
-    - alerts
-    - recommendations
+    - upstream1
+    - upstream2
   batchSize: 1
 KafkaProducer:
   config:
     bootstrap.servers: kafka:9092
-  topic: actions
+  topic: downstream1
 AppDatabase:
   connection:
     postgres_host: db

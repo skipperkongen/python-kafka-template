@@ -2,7 +2,6 @@ import logging
 import signal
 import time
 import os
-import random
 
 from confluent_kafka import Producer
 
@@ -31,14 +30,10 @@ producer = Producer({
 })
 
 while True:
-    if random.random() < crap_probability:
-        send_msg = crap_msg
-    else:
-        send_msg = msg
-    logger.info(f'Producing message: {send_msg}')
+    logger.info(f'Producing message: {msg}')
     producer.produce(
         topic=topic,
-        value=send_msg.encode('utf-8')
+        value=msg.encode('utf-8')
     )
     producer.poll(0)
     time.sleep(sleep_seconds)

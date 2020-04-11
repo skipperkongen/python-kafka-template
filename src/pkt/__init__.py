@@ -9,16 +9,21 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('core')
 
 
-class Action:
-    def __init__(self, action_type):
-        self.action_type = action_type
+class Task:
+    def __init__(self, input):
+        self.input = input
+
+
+class Result:
+    def __init__(self, input, output):
+        self.input = input
+        self.output = output
 
 
 class Api:
 
-    def __init__(self, engine=None):
+    def __init__(self):
         self.lock = threading.Lock()
-        self.engine = engine
         self.counter = 0
 
     def incr(self):
@@ -26,62 +31,37 @@ class Api:
         self.counter += 1
         self.lock.release()
 
-    def store_rule(self, rule):
-        pass
-
-    def delete_rule(self, rule_id):
-        pass
-
-    def disable_rule(self, rule_id):
-        pass
-
-    def get_rules(self, group_id=None):
-        pass
-
-    def get_actions(self, event):
-        yield Action(action_type = 'POST_HTTP')
+    def get_tasks(self, event):
+        yield Task('answer_to_everything')
 
 
-class ActionExecutor:
+class TaskHandler:
 
-    def __init__(self, queue, producer, api):
+    def __init__(self, queue, api, producer, topic):
         self.queue = queue
         self.producer = producer
         self.api = api
-        self.topic = 'actions'
+        self.topic = topic
 
     def run(self):
         while 1:
             try:
-                action = self.queue.get()
-                if action.action_type == 'SEND_EMAIL':
-                    self.send_email(action)
-                elif action.action_type == 'SEND_SMS':
-                    self.send_sms(action)
-                elif action.action_type == 'POST_HTTP':
-                    self.post_http(action)
-                else:
-                    raise NotImplementedError(f'Action type not supported: {action.action_type}')
+                task = self.queue.get()
+                result = self.handle_task(task)
             except Exception as e:
-                logger.warning(f'An error occured while executing action: {e}')
+                logger.warning(f'An error occured while handling task: {e}')
             try:
-                self.produce(action)
+                self.produce(result)
             except Exception as e:
                 logger.warning(f'An error occured while producing message: {e}')
 
         logger.info('Action executor thread terminating!')
 
-    def send_email(self, action):
-        raise NotImplementedError(f'Send email not implemented')
+    def handle_task(self, task):
+        return Result(task.input, 42)
 
-    def send_sms(self, action):
-        raise NotImplementedError(f'Send SMS not implemented')
-
-    def post_http(self, action):
-        raise NotImplementedError(f'Post HTTP not implemented')
-
-    def produce(self, action):
-        message = json.dumps(action.__dict__)
+    def produce(self, result):
+        message = json.dumps(result.__dict__)
         logger.info(f'Producing message: {message}')
         self.producer.produce(
             topic=self.topic,
@@ -89,9 +69,10 @@ class ActionExecutor:
         )
         self.producer.poll(0)
 
+
 class EventConsumer:
 
-    def __init__(self, queue, consumer, api, database=None, batch_size=5, timeout=10):
+    def __init__(self, queue, consumer, api, database=None, batch_size=5, timeout=5):
         self.queue = queue
         self.consumer = consumer
         self.api = api
@@ -142,11 +123,11 @@ class EventConsumer:
         except:
             raise ParseError(message)
 
-    def process_event(self, evt):
-        logger.info(f'Processing event: {evt}')
+    def process_event(self, event):
+        logger.info(f'Processing event: {event}')
         self.api.incr()
-        for action in self.api.get_actions(evt):
-            self.queue.put(action)
+        for task in self.api.get_tasks(event):
+            self.queue.put(task)
 
 
 class ParseError(Exception):
