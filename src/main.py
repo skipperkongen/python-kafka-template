@@ -8,7 +8,8 @@ from configurator import Config
 from confluent_kafka import Consumer, Producer, KafkaException, KafkaError
 from flask import Flask, Response, request, jsonify
 
-from pkt import ParseError, Api, EventConsumer, TaskHandler
+from app import ParseError, Api, EventConsumer, TaskHandler
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -52,10 +53,10 @@ event_consumer_thread.start()
 logger.info('Starting REST interface')
 # Create the Flask application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'dudu-dodo-didi-dada'
 
 @app.route('/', methods=['GET'])
 def hello():
     return Response(f'I have received {api.counter} messages', mimetype='text/plain')
+
 
 logger.info('Ready to receive requests')
