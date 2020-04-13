@@ -1,15 +1,3 @@
-import json
-import logging
-from queue import SimpleQueue
-import signal
-import threading
-
-from configurator import Config
-from confluent_kafka import Consumer, Producer, KafkaException, KafkaError
-from flask import Flask, Response, request, jsonify
-
-from app import ParseError, Api, EventConsumer, TaskHandler
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
