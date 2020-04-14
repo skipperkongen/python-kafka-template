@@ -37,7 +37,16 @@ make compose_up
 Call Web API:
 
 ```
-curl http://localhost
+# Get token
+TOKEN=$(curl -s -H 'content-type: application/json' -d '{"username": "test","password": "test"}' http://localhost/login | jq -r .access_token)
+
+# Create actions
+curl -H "Content-type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"subject": "foo", "action": "go go go"}' http://localhost/api/v1/actions/
+curl -H "Content-type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"subject": "foo", "action": "go go go"}' http://localhost/api/v1/actions/
+curl -H "Content-type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"subject": "foo", "action": "go go go"}' http://localhost/api/v1/actions/
+
+# Retrieve actions
+curl -H "Authorization: Bearer $TOKEN" http://localhost/api/v1/actions/ | jq
 ```
 
 Stop the service:
