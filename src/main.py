@@ -13,5 +13,5 @@ signal.signal(signal.SIGTERM, handler_stop_signals)
 config = Config.from_path('/app/config.yaml', optional=True)
 
 app = create_app(config)
-kafka = create_kafka(config)
+kafka = create_kafka(config, app)
 kafka.start()
