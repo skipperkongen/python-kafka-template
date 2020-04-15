@@ -49,8 +49,8 @@ class KafkaProcessor:
                         else:
                             # Handle message
                             evt = self.parse_message(msg.value())
-                            for action in self.process_event(evt):
-                                self.produce(action)
+                            for item in self.process_event(evt):
+                                self.produce(item)
                         self.consumer.commit(msg)
                     except IgnorableError as e:
                         logger.warning(f'Ignoring error: {e}')
@@ -75,11 +75,11 @@ class KafkaProcessor:
         if subject is not None:
             items = Session.query(Action).filter(Action.subject == subject).all()
             for item in items:
-                yield item
+                yield item.serialize()
             Session.remove()
 
-    def produce(self, action):
-        message = json.dumps(action.__dict__)
+    def produce(self, item):
+        message = json.dumps(item)
         logger.info(f'Producing message: {message}')
         self.producer.produce(
             topic=self.topic,
