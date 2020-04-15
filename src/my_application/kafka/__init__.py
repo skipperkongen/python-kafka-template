@@ -4,7 +4,8 @@ import threading
 
 from confluent_kafka import Consumer, Producer, KafkaException, KafkaError
 
-from my_application.web.model import Action
+from my_application.core.models import Action
+from my_application.core.db import Session
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,9 +19,9 @@ class KafkaProcessor:
     def run(self):
         while 1:
             try:
-                with self.app.app_context():
-                    item = Action.query.first()
-                logger.info(f'Tick: {item}')
+                item = Session.query(Action).first()
+                logger.info(f'Tick: {item} from {self}')
+                Session.remove()
             except Exception as e:
                 logger.exception(e)
             finally:

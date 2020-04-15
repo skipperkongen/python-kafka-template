@@ -10,6 +10,7 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 COPY my_application my_application
-COPY main.py .
+COPY main_web.py .
+COPY main_kafka.py .
 
 # CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "main:app", "-k", "sync"]
