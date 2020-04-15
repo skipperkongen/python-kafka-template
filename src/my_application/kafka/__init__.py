@@ -1,4 +1,5 @@
 import logging
+import json
 from time import sleep
 import threading
 
@@ -48,7 +49,8 @@ class KafkaProcessor:
                         else:
                             # Handle message
                             evt = self.parse_message(msg.value())
-                            self.process_event(evt)
+                            for action in self.process_event(evt):
+                                self.produce(action)
                         self.consumer.commit(msg)
                     except IgnorableError as e:
                         logger.warning(f'Ignoring error: {e}')
@@ -62,15 +64,28 @@ class KafkaProcessor:
     def parse_message(self, message):
         try:
             # JSON or bust!!
+            # logger.info(f'Parsing message: {message}')
             return json.loads(message)
         except:
             raise IgnorableError(message)
 
     def process_event(self, event):
-        logger.info(f'Processing event: {event}')
-        # item = Session.query(Action).first()
-        # logger.info(f'Tick: {item} from {self}')
-        # Session.remove()
+        # logger.info(f'Processing event: {event}')
+        subject = event.get('subject')
+        if subject is not None:
+            items = Session.query(Action).filter(Action.subject == subject).all()
+            for item in items:
+                yield item
+            Session.remove()
+
+    def produce(self, action):
+        message = json.dumps(action.__dict__)
+        logger.info(f'Producing message: {message}')
+        self.producer.produce(
+            topic=self.topic,
+            value=message.encode('utf-8')
+        )
+        self.producer.poll(0)
 
 
 def create_kafka(config):

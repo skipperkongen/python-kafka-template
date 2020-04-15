@@ -37,7 +37,7 @@ services:
       POSTGRES_DATABASE: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ${PWD}/data/postgres_testdata.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ${PWD}/data/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
 
   kafka_upstream_1:
     build: src-offline
@@ -48,7 +48,7 @@ services:
     environment:
       KAFKA_SERVER: kafka:9092
       KAFKA_TOPIC: upstream1
-      KAFKA_MESSAGE: '{"source": "upstream1"}'
+      KAFKA_MESSAGE: '{"subject": "foo"}'
       SLEEP_SECONDS: 3
 
   kafka_upstream_2:
@@ -60,7 +60,7 @@ services:
     environment:
       KAFKA_SERVER: kafka:9092
       KAFKA_TOPIC: upstream2
-      KAFKA_MESSAGE: '{"source":"upstream2"}'
+      KAFKA_MESSAGE: '{"subject":"bar"}'
       SLEEP_SECONDS: 2
 
   kafka_downstream1:
