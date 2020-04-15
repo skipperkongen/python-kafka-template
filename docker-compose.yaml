@@ -5,11 +5,16 @@ services:
     build: src
     ports:
       - "80:8000"
+    volumes:
+      - ${PWD}/config/offline.config.yaml:/app/config.yaml
     command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "main_web:app", "-k", "sync"]
 
-  # api_kafka:
-  #   build: src
-  #   command: ["python3", "main_kafka.py"]
+  api_kafka:
+    build: src
+    volumes:
+      - ${PWD}/config/offline.config.yaml:/app/config.yaml
+    command: ["python3", "main_kafka.py"]
+
 
   # api:
   #   build: src
@@ -23,20 +28,6 @@ services:
   #     - "80:8000"
   #   command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "main:app", "-k", "sync"]
 
-  # flyway:
-  #   image: boxfuse/flyway:5.2.4
-  #   command: ["migrate", "-baselineOnMigrate=true"]
-  #   restart: on-failure
-  #   environment:
-  #     FLYWAY_URL: jdbc:postgresql://db:5432/postgres
-  #     FLYWAY_USER: postgres
-  #     FLYWAY_PASSWORD: password
-  #     FLYWAY_SCHEMAS: pkt
-  #   depends_on:
-  #     - db
-  #   volumes:
-  #     - ${PWD}/migrations:/flyway/sql
-
   db:
     # https://hub.docker.com/_/postgres
     image: postgres:11
@@ -46,59 +37,59 @@ services:
       POSTGRES_DATABASE: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ${PWD}/data/postgres_testdata.sql:/docker-entrypoint-initdb.d/postgres_testdata.sql
+      - ${PWD}/data/postgres_testdata.sql:/docker-entrypoint-initdb.d/create_tables.sql
 
-  # kafka_upstream_1:
-  #   build: src-offline
-  #   depends_on:
-  #     - kafka
-  #   restart: always
-  #   entrypoint: ["python3", "kafka_producer.py"]
-  #   environment:
-  #     KAFKA_SERVER: kafka:9092
-  #     KAFKA_TOPIC: upstream1
-  #     KAFKA_MESSAGE: '{"source": "upstream1"}'
-  #     SLEEP_SECONDS: 3
-  #
-  # kafka_upstream_2:
-  #   build: src-offline
-  #   depends_on:
-  #     - kafka
-  #   restart: always
-  #   entrypoint: ["python3", "kafka_producer.py"]
-  #   environment:
-  #     KAFKA_SERVER: kafka:9092
-  #     KAFKA_TOPIC: upstream2
-  #     KAFKA_MESSAGE: '{"source":"upstream2"}'
-  #     SLEEP_SECONDS: 2
-  #
-  # kafka_downstream1:
-  #   build: src-offline
-  #   depends_on:
-  #     - kafka
-  #   restart: always
-  #   entrypoint: ["python3", "kafka_consumer.py"]
-  #   environment:
-  #     KAFKA_SERVER: kafka:9092
-  #     KAFKA_TOPIC: downstream1
-  #     KAFKA_CONSUMER_GROUP: '0'
-  #
-  # zookeeper:
-  #   # https://hub.docker.com/r/wurstmeister/zookeeper
-  #   image: wurstmeister/zookeeper
-  #   ports:
-  #     - "2181:2181"
-  # kafka:
-  #   # https://hub.docker.com/r/wurstmeister/kafka
-  #   image: wurstmeister/kafka
-  #   ports:
-  #     - "9092:9092"
-  #   environment:
-  #     KAFKA_ADVERTISED_HOST_NAME: kafka
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_AUTO_CREATE_TOPICS: 'upstream1:1:1,upstream2:1:1,downstream1:1:1'
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
+  kafka_upstream_1:
+    build: src-offline
+    depends_on:
+      - kafka
+    restart: always
+    entrypoint: ["python3", "kafka_producer.py"]
+    environment:
+      KAFKA_SERVER: kafka:9092
+      KAFKA_TOPIC: upstream1
+      KAFKA_MESSAGE: '{"source": "upstream1"}'
+      SLEEP_SECONDS: 3
+
+  kafka_upstream_2:
+    build: src-offline
+    depends_on:
+      - kafka
+    restart: always
+    entrypoint: ["python3", "kafka_producer.py"]
+    environment:
+      KAFKA_SERVER: kafka:9092
+      KAFKA_TOPIC: upstream2
+      KAFKA_MESSAGE: '{"source":"upstream2"}'
+      SLEEP_SECONDS: 2
+
+  kafka_downstream1:
+    build: src-offline
+    depends_on:
+      - kafka
+    restart: always
+    entrypoint: ["python3", "kafka_consumer.py"]
+    environment:
+      KAFKA_SERVER: kafka:9092
+      KAFKA_TOPIC: downstream1
+      KAFKA_CONSUMER_GROUP: '0'
+
+  zookeeper:
+    # https://hub.docker.com/r/wurstmeister/zookeeper
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    # https://hub.docker.com/r/wurstmeister/kafka
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS: 'upstream1:1:1,upstream2:1:1,downstream1:1:1'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   db-data:
