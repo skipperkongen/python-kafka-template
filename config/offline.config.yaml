@@ -1,21 +1,20 @@
-KafkaConsumer:
-  config:
-    bootstrap.servers: kafka:9092
-    group.id: '0'
-  topics:
-    - upstream1
-    - upstream2
-  batchSize: 1
-KafkaProducer:
-  config:
-    bootstrap.servers: kafka:9092
-  topic: downstream1
-AppDatabase:
-  connection:
-    postgres_host: db
-    postgres_port: 5432
-    postgres_user: postgres
-    postgres_password: password
-    postgres_db_name: postgres
-    postgres_sslmode: disable
-    postgres_sslrootcert:
+kafka:
+  consumer:
+    config:
+      bootstrap.servers: kafka:9092
+      group.id: '0'
+    topics:
+      - upstream1
+      - upstream2
+    batch_size: 1
+  producer:
+    config:
+      bootstrap.servers: kafka:9092
+    topic: downstream1
+database:
+  connection: 'postgresql://postgres:password@db:5432/postgres'
+flask:
+  jwt_secret_key: test
+  secret_key: test
+  username: test
+  password: test

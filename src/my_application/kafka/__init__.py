@@ -90,17 +90,18 @@ class KafkaProcessor:
 
 def create_kafka(config):
     logger.info('Creating Kafka consumer')
-    consumer = Consumer(config['KafkaConsumer']['config'])
-    consumer_topics = config['KafkaConsumer']['topics']
+    consumer = Consumer(config['kafka']['consumer']['config'])
+    consumer_topics = config['kafka']['consumer']['topics']
     for topic in consumer_topics:
         logger.info(f'- {topic}')
     consumer.subscribe(consumer_topics)
 
     logger.info('Creating Kafka producer')
-    producer = Producer(config['KafkaProducer']['config'])
-    topic = config['KafkaProducer']['topic']
+    producer = Producer(config['kafka']['producer']['config'])
+    topic = config['kafka']['producer']['topic']
     kafka = KafkaProcessor(consumer=consumer,
                            producer=producer,
-                           topic=topic)
+                           topic=topic,
+                           batch_size = config['kafka']['consumer']['batch_size'])
 
     return threading.Thread(target=kafka.run)

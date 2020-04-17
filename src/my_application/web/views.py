@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, abort, request
+from flask import Blueprint, jsonify, abort, request, current_app
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token
 )
@@ -8,7 +8,6 @@ from my_application.core.models import Action
 
 ROOT = '/api/v1'
 
-auth_bp = Blueprint('auth', __name__)
 action_bp = Blueprint('api', __name__)
 
 @action_bp.route(f'{ROOT}/actions/<int:id>', methods=['GET'])
@@ -47,6 +46,8 @@ def delete_action(id):
     return jsonify({'result': True})
 
 
+auth_bp = Blueprint('auth', __name__)
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     if not request.is_json:
@@ -59,7 +60,9 @@ def login():
     if not password:
         return jsonify({"msg": "Missing password parameter"}), 400
 
-    if username != 'test' or password != 'test':
+    true_username = current_app.config['USERNAME']
+    true_password = current_app.config['PASSWORD']
+    if username != true_username or password != true_password:
         return jsonify({"msg": "Bad username or password"}), 401
 
     # Identity can be any data that is json serializable
